@@ -2,13 +2,17 @@ import { createStore } from "vuex";
 import * as fb from "../firebase";
 import router from "../router/index";
 
-export default createStore({
+const store = createStore({
   state: {
     userProfile: {},
+    posts: [],
   },
   mutations: {
     setUserProfile(state, val) {
       state.userProfile = val;
+    },
+    setPosts(state, val) {
+      state.posts = val;
     },
   },
   actions: {
@@ -51,6 +55,31 @@ export default createStore({
       commit("setUserProfile", {});
       router.push("/login");
     },
+    async createPost({ state }, post) {
+      await fb.postsCollection.add({
+        createdOn: new Date(),
+        content: post.content,
+        userId: fb.auth.currentUser.uid,
+        userName: state.userProfile.name,
+        comments: 0,
+        likes: 0,
+      });
+    },
   },
   modules: {},
 });
+
+fb.postsCollection.orderBy("createdOn", "desc").onSnapshot((snapshot) => {
+  const postsArray = [];
+
+  snapshot.forEach((doc) => {
+    const post = doc.data();
+    post.id = doc.id;
+
+    postsArray.push(post);
+  });
+
+  store.commit("setPosts", postsArray);
+});
+
+export default store;
