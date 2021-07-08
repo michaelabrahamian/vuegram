@@ -68,6 +68,7 @@ const store = createStore({
     async likePost(_, post) {
       const userId = fb.auth.currentUser.uid;
       const docId = `${userId}_${post.id}`;
+      console.log("liking post", post);
 
       // check if the user has likes post (if there is a matching like document)
       const likeDoc = await fb.likesCollection.doc(docId).get();

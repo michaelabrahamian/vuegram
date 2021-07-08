@@ -12,7 +12,9 @@
             <a>comments {{ post.comments }}</a>
           </li>
           <li>
-            <a>likes {{ post.likes }}</a>
+            <a @click="this.$emit('likePost', post.id, post.likes)"
+              >likes {{ post.likes }}</a
+            >
           </li>
         </ul>
       </div>

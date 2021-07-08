@@ -3,17 +3,19 @@
     <transition name="fade">
       <CommentModal
         v-if="showCommentModal"
-        :post="selectedPost"
+        :post="
+          this.posts.find((post) => post.id === this.selectedCommentPostId)
+        "
         @close="toggleCommentModal()"
       />
     </transition>
-
     <transition name="fade">
       <FullPostModal
         v-if="showPostModal"
         :comments="postComments"
-        :post="fullPost"
+        :post="posts.find((post) => post.id === this.selectedFullPostId)"
         :formatDate="formatDate"
+        @likePost="likePost"
         @close="closePostModal()"
       />
     </transition>
@@ -86,14 +88,18 @@ export default {
         content: "",
       },
       showCommentModal: false,
-      selectedPost: {},
+      selectedCommentPostId: "",
       showPostModal: false,
-      fullPost: {},
+      selectedFullPostId: "HIcJLjHUil7iwT68KWJs",
       postComments: [],
     };
   },
   computed: {
     ...mapState(["userProfile", "posts"]),
+    selectedFullPost: () =>
+      this.posts.find((post) => post.id === this.selectedFullPostId),
+    selectedCommentPost: () =>
+      this.posts.find((post) => post.id === this.selectedCommentPostId),
   },
   methods: {
     createPost() {
@@ -119,13 +125,14 @@ export default {
 
       // set the selected post in state, if opening the modal
       if (this.showCommentModal) {
-        this.selectedPost = post;
+        this.selectedCommentPostId = post.id;
       } else {
-        this.selectedPost = {};
+        this.selectedCommentPostId = "";
       }
     },
     likePost(id, likesCount) {
       this.$store.dispatch("likePost", { id, likesCount });
+      // need to update the full post, in case
     },
     async viewPost(post) {
       // get all comments
@@ -140,7 +147,8 @@ export default {
         comments.push(comment);
       });
       this.postComments = comments;
-      this.fullPost = post;
+      this.selectedFullPostId = post.id;
+      console.log("selectedFullPostId", this.selectedFullPostId);
       this.showPostModal = true;
     },
     closePostModal() {
