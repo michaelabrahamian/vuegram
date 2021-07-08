@@ -139,7 +139,7 @@ export default {
         comment.id = commentDoc.id;
         comments.push(comment);
       });
-      this.postcomments = comments;
+      this.postComments = comments;
       this.fullPost = post;
       this.showPostModal = true;
     },
