@@ -1,5 +1,23 @@
 <template>
   <div id="dashboard">
+    <transition name="fade">
+      <CommentModal
+        v-if="showCommentModal"
+        :post="selectedPost"
+        @close="toggleCommentModal()"
+      />
+    </transition>
+
+    <transition name="fade">
+      <FullPostModal
+        v-if="showPostModal"
+        :comments="postComments"
+        :post="fullPost"
+        :formatDate="formatDate"
+        @close="closePostModal()"
+      />
+    </transition>
+
     <section>
       <div class="col1">
         <div class="profile">
@@ -24,16 +42,20 @@
         <div v-if="posts.length">
           <div v-for="post in posts" :key="post.id" class="post">
             <h5>{{ post.userName }}</h5>
-            <span>{{ post.createdOn }}</span>
-            <p>{{ post.content }}</p>
+            <span>{{ formatDate(post.createdOn) }}</span>
+            <p>{{ trimContent(post.content) }}</p>
             <ul>
               <li>
-                <a>comments {{ post.comments }}</a>
+                <a @click="toggleCommentModal(post)"
+                  >comments {{ post.comments }}</a
+                >
               </li>
               <li>
-                <a>likes {{ post.likes }}</a>
+                <a @click="likePost(post.id, post.likes)"
+                  >likes {{ post.likes }}</a
+                >
               </li>
-              <li><a>view full post</a></li>
+              <li><a @click="viewPost(post)">view full post</a></li>
             </ul>
           </div>
         </div>
@@ -47,12 +69,27 @@
 
 <script>
 import { mapState } from "vuex";
+import moment from "moment";
+import CommentModal from "@/components/CommentModal";
+import FullPostModal from "@/components/FullPostModal";
+
+import { commentsCollection } from "@/firebase";
+
 export default {
+  components: {
+    CommentModal,
+    FullPostModal,
+  },
   data() {
     return {
       post: {
         content: "",
       },
+      showCommentModal: false,
+      selectedPost: {},
+      showPostModal: false,
+      fullPost: {},
+      postComments: [],
     };
   },
   computed: {
@@ -62,6 +99,53 @@ export default {
     createPost() {
       this.$store.dispatch("createPost", { content: this.post.content });
       this.store.content = "";
+    },
+    trimContent(val) {
+      if (val.length < 200) {
+        return val;
+      }
+      return `${val.substring(0, 200)}...`;
+    },
+    formatDate(val) {
+      if (!val) {
+        return "-";
+      }
+
+      const date = val.toDate();
+      return moment(date).fromNow();
+    },
+    toggleCommentModal(post) {
+      this.showCommentModal = !this.showCommentModal;
+
+      // set the selected post in state, if opening the modal
+      if (this.showCommentModal) {
+        this.selectedPost = post;
+      } else {
+        this.selectedPost = {};
+      }
+    },
+    likePost(id, likesCount) {
+      this.$store.dispatch("likePost", { id, likesCount });
+    },
+    async viewPost(post) {
+      // get all comments
+      const commentDocs = await commentsCollection
+        .where("postId", "==", post.id)
+        .get();
+      const comments = [];
+
+      commentDocs.forEach((commentDoc) => {
+        const comment = commentDoc.data();
+        comment.id = commentDoc.id;
+        comments.push(comment);
+      });
+      this.postcomments = comments;
+      this.fullPost = post;
+      this.showPostModal = true;
+    },
+    closePostModal() {
+      this.postComments = [];
+      this.showPostModal = false;
     },
   },
 };

@@ -65,6 +65,29 @@ const store = createStore({
         likes: 0,
       });
     },
+    async likePost(_, post) {
+      const userId = fb.auth.currentUser.uid;
+      const docId = `${userId}_${post.id}`;
+
+      // check if the user has likes post (if there is a matching like document)
+      const doc = await fb.likesCollection.doc(docId).get();
+
+      // TODO - implement UNLIKE remove the doc if it exists, then return
+      if (doc.exists) {
+        return;
+      }
+
+      // create post
+      await fb.likesCollection.doc(docId).set({
+        postId: post.id,
+        userId: userId,
+      });
+
+      // increment likes count
+      fb.postsCollection.doc(post.id).update({
+        likes: post.likesCount + 1,
+      });
+    },
   },
   modules: {},
 });
