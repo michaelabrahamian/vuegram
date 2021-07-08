@@ -9,7 +9,7 @@
         <p>{{ post.content }}</p>
         <ul>
           <li>
-            <a>comments {{ post.comments }}</a>
+            <a @click="toggleCommentForm()">comments {{ post.comments }}</a>
           </li>
           <li>
             <a @click="this.$emit('likePost', post.id, post.likes)"
@@ -18,6 +18,12 @@
           </li>
         </ul>
       </div>
+      <CommentModal
+        v-if="showCommentForm"
+        :post="post"
+        @close="toggleCommentForm()"
+        @addComment="this.$emit('addComment')"
+      />
       <div v-show="comments.length" class="comments">
         <div v-for="comment in comments" :key="comment.id" class="comment">
           <p>{{ comment.userName }}</p>
@@ -30,7 +36,22 @@
 </template>
 
 <script>
+import CommentModal from "@/components/CommentModal";
 export default {
   props: ["comments", "post", "formatDate"],
+  components: {
+    CommentModal,
+  },
+  data() {
+    return {
+      showCommentForm: true,
+    };
+  },
+  methods: {
+    toggleCommentForm() {
+      console.log("toggling from", this.showCommentForm);
+      this.showCommentForm = !this.showCommentForm;
+    },
+  },
 };
 </script>

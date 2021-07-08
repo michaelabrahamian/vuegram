@@ -1,5 +1,5 @@
 <template>
-  <div class="c-container">
+  <div class="c-container comment-container">
     <a @click="$emit('close')">close</a>
     <p>add a comment</p>
     <form @submit.prevent>
@@ -35,7 +35,15 @@ export default {
       });
 
       this.$emit("close");
+      this.$emit("addComment");
     },
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.comment-container {
+  max-width: 800px;
+  margin: auto;
+}
+</style>

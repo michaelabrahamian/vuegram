@@ -3,9 +3,7 @@
     <transition name="fade">
       <CommentModal
         v-if="showCommentModal"
-        :post="
-          this.posts.find((post) => post.id === this.selectedCommentPostId)
-        "
+        :post="selectedCommentPost()"
         @close="toggleCommentModal()"
       />
     </transition>
@@ -13,10 +11,11 @@
       <FullPostModal
         v-if="showPostModal"
         :comments="postComments"
-        :post="posts.find((post) => post.id === this.selectedFullPostId)"
+        :post="selectedFullPost()"
         :formatDate="formatDate"
         @likePost="likePost"
         @close="closePostModal()"
+        @addComment="setComments(selectedFullPost())"
       />
     </transition>
 
@@ -90,16 +89,12 @@ export default {
       showCommentModal: false,
       selectedCommentPostId: "",
       showPostModal: false,
-      selectedFullPostId: "HIcJLjHUil7iwT68KWJs",
+      selectedFullPostId: "",
       postComments: [],
     };
   },
   computed: {
     ...mapState(["userProfile", "posts"]),
-    selectedFullPost: () =>
-      this.posts.find((post) => post.id === this.selectedFullPostId),
-    selectedCommentPost: () =>
-      this.posts.find((post) => post.id === this.selectedCommentPostId),
   },
   methods: {
     createPost() {
@@ -135,6 +130,17 @@ export default {
       // need to update the full post, in case
     },
     async viewPost(post) {
+      await this.setComments(post);
+
+      this.selectedFullPostId = post.id;
+      console.log("selectedFullPostId", this.selectedFullPostId);
+      this.showPostModal = true;
+    },
+    closePostModal() {
+      this.postComments = [];
+      this.showPostModal = false;
+    },
+    async setComments(post) {
       // get all comments
       const commentDocs = await commentsCollection
         .where("postId", "==", post.id)
@@ -147,13 +153,12 @@ export default {
         comments.push(comment);
       });
       this.postComments = comments;
-      this.selectedFullPostId = post.id;
-      console.log("selectedFullPostId", this.selectedFullPostId);
-      this.showPostModal = true;
     },
-    closePostModal() {
-      this.postComments = [];
-      this.showPostModal = false;
+    selectedFullPost() {
+      return this.posts.find((post) => post.id === this.selectedFullPostId);
+    },
+    selectedCommentPost() {
+      return this.posts.find((post) => post.id === this.selectedCommentPostId);
     },
   },
 };
