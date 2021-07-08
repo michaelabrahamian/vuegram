@@ -88,6 +88,38 @@ const store = createStore({
         likes: post.likesCount + 1,
       });
     },
+    async updateProfile({ dispatch }, user) {
+      const userId = fb.auth.currentUser.uid;
+
+      // update the fields in the user object
+      await fb.usersCollection.doc(userId).update({
+        name: user.name,
+        title: user.title,
+      });
+
+      // update the user profile in the store
+      dispatch("fetchUserProfile", { uid: userId });
+
+      // update the user's name in their posts
+      const postDocs = await fb.postsCollection
+        .where("userId", "==", userId)
+        .get();
+      postDocs.forEach((postDoc) => {
+        fb.postsCollection.doc(postDoc.id).update({
+          userName: user.name,
+        });
+      });
+
+      // update the user's name in their comments
+      const commentDocs = await fb.commentsCollection
+        .where("userId", "==", userId)
+        .get();
+      commentDocs.forEach((commentDoc) => {
+        fb.commentsCollection.doc(commentDoc.id).update({
+          userName: user.name,
+        });
+      });
+    },
   },
   modules: {},
 });
