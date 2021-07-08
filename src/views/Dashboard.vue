@@ -22,7 +22,7 @@
     <section>
       <div class="col1">
         <div class="profile">
-          <h5>n</h5>
+          <h5>{{ userProfile.name }}</h5>
           <p></p>
           <div class="create-post">
             <p>create a post</p>
